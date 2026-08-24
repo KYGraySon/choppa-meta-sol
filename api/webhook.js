@@ -1585,6 +1585,12 @@ bot.hears(/^.+$/, async (ctx, next) => {
   }
   // ===== END GROUP CA FAST PATH =====
 
+  // Check for global navigation commands first to break out of conversational flows
+  const navCommands = ["🚫 Cancel", "⬅️ Back", "⬆️ Main Menu", "/start"];
+  if (navCommands.includes(text)) {
+    return next();
+  }
+
   // ===== WITHDRAW CONVERSATIONAL FLOW =====
   if (ctx.session?.withdrawStep === "address") {
     // Step 1: user typed a Solana address
@@ -2189,7 +2195,8 @@ continueScene.hears(/.*/, async (ctx) => {
       await ctx.scene.leave();
       return ctx.scene.enter("START_SCENE");
     }
-    if (input === "🚫 Cancel") {
+    const navCommands = ["🚫 Cancel", "⬅️ Back", "⬆️ Main Menu"];
+    if (navCommands.includes(input)) {
       await ctx.scene.leave();
       return ctx.reply("Action cancelled.", buttons.main);
     }
@@ -2284,7 +2291,8 @@ helpScene.hears(/.*/, async (ctx) => {
     await ctx.scene.leave();
     return ctx.scene.enter("START_SCENE");
   }
-  if (input === "🚫 Cancel") {
+  const navCommands = ["🚫 Cancel", "⬅️ Back", "⬆️ Main Menu"];
+  if (navCommands.includes(input)) {
     await ctx.scene.leave();
     return ctx.reply("Action cancelled.", buttons.main);
   }
@@ -2875,7 +2883,12 @@ bot.action(/.*/, async (ctx) => {
       },
     );
   } else if (ctx.match.input === "BACK_MAIN") {
-    await ctx.answerCbQuery();
+    await ctx.answerCbQuery().catch(() => {});
+    try {
+      await ctx.deleteMessage();
+    } catch (err) {
+      console.warn("Couldn't delete message in BACK_MAIN:", err.message);
+    }
     const userData = sessionManager.getUserData(ctx);
     const secret = userData?.wallet;
 
