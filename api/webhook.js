@@ -1498,7 +1498,7 @@ bot.start(async (ctx) => {
   await ctx.replyWithHTML(welcomeText, buttons.main);
 });
 
-bot.hears(/^.+$/, async (ctx) => {
+bot.hears(/^.+$/, async (ctx, next) => {
   const text = ctx.message.text.trim();
   const chatType = ctx.chat?.type;
   const isGroup = chatType === "group" || chatType === "supergroup";
@@ -2051,6 +2051,10 @@ bot.hears(/^.+$/, async (ctx) => {
       console.error("Failed to send error message:", e.message);
     }
   }
+
+  // If we reach here, the text was neither a Contract Address nor a withdrawal input.
+  // We MUST call next() so Telegraf passes the text to the rest of the bot.hears button handlers!
+  return next();
 });
 
 startScene.enter(async (ctx) => {
