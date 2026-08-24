@@ -408,19 +408,23 @@ const sessionManager = secureSessionManager;
 // ===== MESSAGE TEMPLATES =====
 const messages = {
   welcome: (balance, price, userWalletAddress = null) => {
-    const balStr = utils.escapeHtml(balance.toFixed(4));
-    const usdStr = utils.escapeHtml((price * balance).toFixed(2));
-    const walletAddress = userWalletAddress || MainAddress;
-
-    return `Hello, Welcome to Meta Trading Bot!  
+    let msg = `Hello, Welcome to Meta Trading Bot!  
 Exclusively built by the Meta Trading community,  
-The best bot used for trading any SOL token.  
-  
-Your wallet address:  
+The best bot used for trading any SOL token.  \n\n`;
+
+    if (userWalletAddress) {
+      const balStr = utils.escapeHtml(balance.toFixed(4));
+      const usdStr = utils.escapeHtml((price * balance).toFixed(2));
+      msg += `Your wallet address:  
 Solana:  
-  <code>${walletAddress}</code>  
+  <code>${userWalletAddress}</code>  
 Bal: <b>${balStr} SOL</b> - <b>$${usdStr}</b>  
-Click on the Refresh button to update your current balance`;
+<i>To update your current balance, click the Wallet button below.</i>`;
+    } else {
+      msg += `⚠️ <b>No Wallet Connected</b>\n\n<i>Please use the '🔗 Create or Import Wallet' button below to set up your wallet and start trading.</i>`;
+    }
+
+    return msg;
   },
 
   development: "This feature is under development, please come back later🎉",
