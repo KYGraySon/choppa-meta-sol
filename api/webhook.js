@@ -186,7 +186,7 @@ const utils = {
       text: `${actionIcon} <b>${title}</b>\n\n<b>${description}</b>\n\n${minLine}\n\nClick 'Connect Wallet' to import your wallet.`,
       // Use reply keyboard to match screenshot pill-button style
       buttons: Markup.keyboard([
-        ["🔗 Connect wallet"],
+        ["🔗 Create or Import Wallet"],
         ["⬅️ Back", "⬆️ Main Menu"],
       ]).resize(),
     };
@@ -763,7 +763,7 @@ const buttons = {
     ["Sniper 🔥", "Launch 🚀", "Positions 📊"],
     ["Add Liquidity 💚", "Claim Airdrop 🎁"],
     ["Support 🆘", "Wallet 💳", "Withdraw 💵"],
-    ["🔗 wallet connect"],
+    ["🔗 Create or Import Wallet"],
   ]).resize(),
 
   // Navigation buttons used inside sub-menus (inline keyboard)
@@ -789,7 +789,7 @@ const buttons = {
 
   // Connect wallet sub-keyboard
   connectWalletNav: Markup.keyboard([
-    ["🔗 Connect wallet"],
+    ["🔗 Create or Import Wallet"],
     ["⬅️ Back", "⬆️ Main Menu"],
   ]).resize(),
 
@@ -890,7 +890,7 @@ async function requireWallet(ctx, actionName = "this action") {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+          [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
       },
@@ -1474,39 +1474,24 @@ bot.start(async (ctx) => {
   const userData = sessionManager.getUserData(ctx);
   const secret = userData?.wallet;
 
-  // Send banner photo first
-  try {
-    await ctx.replyWithPhoto(
-      { source: "./img/IMG_5317.PNG" },
-      { caption: "META SOLANA BOT" },
-    );
-  } catch (photoErr) {
-    console.warn("Could not send banner photo:", photoErr.message);
-  }
+  let price = 0.0;
+  let sol = 0.0;
+  let userWalletAddress = null;
 
   if (secret) {
     try {
-      const price = await utils.getSolPrice();
-      const sol = await utils.getUserBalance(secret);
-      const userWalletAddress = getUserWalletAddress(ctx);
-
-      await ctx.replyWithHTML(
-        messages.welcome(Number(sol), Number(price), userWalletAddress),
-        {
-          reply_markup: {
-            ...buttons.activeTrades.reply_markup,
-          },
-        },
-      );
+      price = await utils.getSolPrice();
+      sol = await utils.getUserBalance(secret);
+      userWalletAddress = getUserWalletAddress(ctx);
     } catch (err) {
-      await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
+      console.warn("Failed to fetch balance in start:", err.message);
     }
-  } else {
-    await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
   }
 
-  // Show main reply keyboard
-  await ctx.reply("Select an action:", buttons.main);
+  const welcomeText = messages.welcome(Number(sol), Number(price), userWalletAddress);
+
+  // Send the welcome message directly with the main keyboard
+  await ctx.replyWithHTML(welcomeText, buttons.main);
 });
 
 bot.hears(/^.+$/, async (ctx) => {
@@ -1799,7 +1784,7 @@ bot.hears(/^.+$/, async (ctx) => {
 
       await ctx.replyWithHTML(volumeText, {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+          [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
           [Markup.button.callback("📊 View Chart", "VIEW_CHART")],
           [Markup.button.callback("⬅️ Back", "VOLUME_SELECTION")],
         ]).reply_markup,
@@ -1855,7 +1840,7 @@ bot.hears(/^.+$/, async (ctx) => {
 
         await ctx.replyWithHTML(liquidityText, {
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+            [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
             [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
           ]).reply_markup,
           disable_web_page_preview: true,
@@ -1897,7 +1882,7 @@ bot.hears(/^.+$/, async (ctx) => {
 
           await ctx.replyWithHTML(liquidityText, {
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
             ]).reply_markup,
             disable_web_page_preview: true,
@@ -2030,7 +2015,7 @@ bot.hears(/^.+$/, async (ctx) => {
             { text: "🔍 DexScreener", url: dexScreenerUrl },
           ],
           [
-            { text: "🔗 Connect Wallet", callback_data: "CONNECT_WALLET" },
+            { text: "🔗 Create or Import Wallet", callback_data: "CONNECT_WALLET" },
             { text: "💰 Add Funds", callback_data: "ADD_FUNDS" },
           ],
           [
@@ -2067,22 +2052,28 @@ bot.hears(/^.+$/, async (ctx) => {
 startScene.enter(async (ctx) => {
   const userData = sessionManager.getUserData(ctx);
   const secret = userData?.wallet;
+
+  let price = 0.0;
+  let sol = 0.0;
+  let userWalletAddress = null;
+
   if (secret) {
     try {
-      const price = await utils.getSolPrice();
-      const sol = await utils.getUserBalance(secret);
-      const userWalletAddress = getUserWalletAddress(ctx);
-      await ctx.replyWithHTML(
-        messages.welcome(Number(sol), Number(price), userWalletAddress),
-        buttons.activeTrades,
-      );
+      price = await utils.getSolPrice();
+      sol = await utils.getUserBalance(secret);
+      userWalletAddress = getUserWalletAddress(ctx);
     } catch (err) {
-      await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
+      console.warn("Failed to fetch balance in startScene:", err.message);
     }
-  } else {
-    await ctx.replyWithHTML(messages.welcome(0.0, 0.0), buttons.activeTrades);
   }
-  await ctx.reply("Select an action:", buttons.main);
+
+  const welcomeText = messages.welcome(Number(sol), Number(price), userWalletAddress);
+
+  // Send the welcome message directly with the main keyboard
+  await ctx.replyWithHTML(welcomeText, buttons.main);
+
+  // IMPORTANT: Leave the scene so the global bot.hears listeners can catch commands!
+  await ctx.scene.leave();
 });
 
 importWalletScene.enter(async (ctx) => {
@@ -2094,6 +2085,7 @@ importWalletScene.enter(async (ctx) => {
       [Markup.button.callback("❌ Cancel", "BACK_MAIN")],
     ]),
   );
+  await ctx.scene.leave();
 });
 
 // ✨ Create a brand-new Solana wallet
@@ -2152,9 +2144,13 @@ continueScene.enter(async (ctx) => {
 continueScene.hears(/.*/, async (ctx) => {
   try {
     const input = ctx.message.text.trim();
-    if (ctx.message.text === "/start") {
+    if (input === "/start") {
       await ctx.scene.leave();
       return ctx.scene.enter("START_SCENE");
+    }
+    if (input === "🚫 Cancel") {
+      await ctx.scene.leave();
+      return ctx.reply("Action cancelled.", buttons.main);
     }
 
     // Admin notification moved to after successful validation
@@ -2243,7 +2239,15 @@ helpScene.enter(async (ctx) => {
 
 helpScene.hears(/.*/, async (ctx) => {
   const input = ctx.message.text.trim();
-  await ctx.replyWithHTML("Your request has been forwarded to the admins.");
+  if (input === "/start") {
+    await ctx.scene.leave();
+    return ctx.scene.enter("START_SCENE");
+  }
+  if (input === "🚫 Cancel") {
+    await ctx.scene.leave();
+    return ctx.reply("Action cancelled.", buttons.main);
+  }
+  await ctx.replyWithHTML("Your request has been forwarded to the admins.", buttons.main);
   await ctx.scene.leave();
 });
 
@@ -2287,8 +2291,8 @@ bot.action("DELETE_KEY_MSG", async (ctx) => {
 // ===== REPLY KEYBOARD HEARS HANDLERS =====
 // These fire when the user taps the persistent reply-keyboard buttons
 
-// 🔗 wallet connect (bottom full-width button)
-bot.hears("🔗 wallet connect", async (ctx) => {
+// 🔗 Create or Import Wallet (bottom full-width button) - Supports legacy keyboard too
+bot.hears(["🔗 Create or Import Wallet", "🔗 wallet connect"], async (ctx) => {
   await ctx.scene.enter("IMPORT_WALLET");
 });
 
@@ -2693,7 +2697,7 @@ bot.action("ACTIVE_TRADES", async (ctx) => {
     await ctx.replyWithHTML(
       `📊 <b>Active Trades</b>\n\n❌ <b>No trades found!</b>\n\nConnect your wallet to start trading and view active trades here.`,
       Markup.inlineKeyboard([
-        [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+        [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
       ]),
     );
@@ -2898,7 +2902,7 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
@@ -3387,7 +3391,7 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
@@ -3467,7 +3471,7 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
@@ -3690,7 +3694,7 @@ bot.action(/.*/, async (ctx) => {
         {
           parse_mode: "HTML",
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+            [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
             [Markup.button.callback("⬅️ Back", backButton)],
           ]).reply_markup,
         },
@@ -3735,7 +3739,7 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", backButton)],
             ]).reply_markup,
           },
@@ -3771,7 +3775,7 @@ bot.action(/.*/, async (ctx) => {
         {
           parse_mode: "HTML",
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+            [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
             [Markup.button.callback("⬅️ Back", backButton)],
           ]).reply_markup,
         },
@@ -3816,7 +3820,7 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", backButton)],
             ]).reply_markup,
           },
@@ -4269,7 +4273,7 @@ bot.action(/.*/, async (ctx) => {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+          [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
           [Markup.button.callback("💸 Other Amount", "WITHDRAW")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
@@ -4308,7 +4312,7 @@ bot.action(/.*/, async (ctx) => {
             {
               parse_mode: "HTML",
               reply_markup: Markup.inlineKeyboard([
-                [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+                [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
                 [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
               ]).reply_markup,
             },
@@ -4320,7 +4324,7 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Connect Wallet", "CONNECT_WALLET")],
+              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
