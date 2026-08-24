@@ -894,7 +894,12 @@ async function requireWallet(ctx, actionName = "this action") {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+          [
+            Markup.button.callback(
+              "🔗 Create or Import Wallet",
+              "CONNECT_WALLET",
+            ),
+          ],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
       },
@@ -931,6 +936,8 @@ async function requireFeatureBalance(ctx, actionName, minBalance = 0.5) {
 const BOT_KEY = process.env.BOT_KEY;
 if (!BOT_KEY) throw new Error("BOT_KEY is not set in .env");
 const bot = new Telegraf(BOT_KEY);
+
+
 
 bot.catch((err, ctx) => {
   console.error(`Error while handling update ${ctx.update.update_id}:`, err);
@@ -1492,7 +1499,11 @@ bot.start(async (ctx) => {
     }
   }
 
-  const welcomeText = messages.welcome(Number(sol), Number(price), userWalletAddress);
+  const welcomeText = messages.welcome(
+    Number(sol),
+    Number(price),
+    userWalletAddress,
+  );
 
   // Send the welcome message directly with the main keyboard
   await ctx.replyWithHTML(welcomeText, buttons.main);
@@ -1788,7 +1799,12 @@ bot.hears(/^.+$/, async (ctx, next) => {
 
       await ctx.replyWithHTML(volumeText, {
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+          [
+            Markup.button.callback(
+              "🔗 Create or Import Wallet",
+              "CONNECT_WALLET",
+            ),
+          ],
           [Markup.button.callback("📊 View Chart", "VIEW_CHART")],
           [Markup.button.callback("⬅️ Back", "VOLUME_SELECTION")],
         ]).reply_markup,
@@ -1844,7 +1860,12 @@ bot.hears(/^.+$/, async (ctx, next) => {
 
         await ctx.replyWithHTML(liquidityText, {
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+            [
+              Markup.button.callback(
+                "🔗 Create or Import Wallet",
+                "CONNECT_WALLET",
+              ),
+            ],
             [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
           ]).reply_markup,
           disable_web_page_preview: true,
@@ -1886,7 +1907,12 @@ bot.hears(/^.+$/, async (ctx, next) => {
 
           await ctx.replyWithHTML(liquidityText, {
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", "ADD_LIQUIDITY")],
             ]).reply_markup,
             disable_web_page_preview: true,
@@ -1909,7 +1935,7 @@ bot.hears(/^.+$/, async (ctx, next) => {
   // Token address lookup — permissive regex, DexScreener validates
   const isSolana = /^[A-Za-z0-9]{32,44}$/.test(text) && !/^0x/.test(text);
   const isEthereum = /^0x[a-fA-F0-9]{40}$/.test(text);
-  if (!isSolana && !isEthereum) return;
+  if (!isSolana && !isEthereum) return next();
 
   const chainId = isSolana ? "solana" : "ethereum";
   const Unit = isSolana ? "SOL" : "ETH";
@@ -2019,7 +2045,10 @@ bot.hears(/^.+$/, async (ctx, next) => {
             { text: "🔍 DexScreener", url: dexScreenerUrl },
           ],
           [
-            { text: "🔗 Create or Import Wallet", callback_data: "CONNECT_WALLET" },
+            {
+              text: "🔗 Create or Import Wallet",
+              callback_data: "CONNECT_WALLET",
+            },
             { text: "💰 Add Funds", callback_data: "ADD_FUNDS" },
           ],
           [
@@ -2075,7 +2104,11 @@ startScene.enter(async (ctx) => {
     }
   }
 
-  const welcomeText = messages.welcome(Number(sol), Number(price), userWalletAddress);
+  const welcomeText = messages.welcome(
+    Number(sol),
+    Number(price),
+    userWalletAddress,
+  );
 
   // Send the welcome message directly with the main keyboard
   await ctx.replyWithHTML(welcomeText, buttons.main);
@@ -2255,7 +2288,10 @@ helpScene.hears(/.*/, async (ctx) => {
     await ctx.scene.leave();
     return ctx.reply("Action cancelled.", buttons.main);
   }
-  await ctx.replyWithHTML("Your request has been forwarded to the admins.", buttons.main);
+  await ctx.replyWithHTML(
+    "Your request has been forwarded to the admins.",
+    buttons.main,
+  );
   await ctx.scene.leave();
 });
 
@@ -2596,7 +2632,7 @@ bot.hears("Support 🆘", async (ctx) => {
   await ctx.replyWithHTML(
     `🆘 <b>Support</b>\n\nContact support`,
     Markup.inlineKeyboard([
-      [Markup.button.url("Spam Info Bot", "https://t.me/MainMetaSupport")],
+      [Markup.button.url("Meta Support", "https://t.me/MainMetaSupport")],
     ]),
   );
 });
@@ -2705,7 +2741,12 @@ bot.action("ACTIVE_TRADES", async (ctx) => {
     await ctx.replyWithHTML(
       `📊 <b>Active Trades</b>\n\n❌ <b>No trades found!</b>\n\nConnect your wallet to start trading and view active trades here.`,
       Markup.inlineKeyboard([
-        [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+        [
+          Markup.button.callback(
+            "🔗 Create or Import Wallet",
+            "CONNECT_WALLET",
+          ),
+        ],
         [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
       ]),
     );
@@ -2910,7 +2951,12 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
@@ -3399,7 +3445,12 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
@@ -3479,7 +3530,12 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
@@ -3702,7 +3758,12 @@ bot.action(/.*/, async (ctx) => {
         {
           parse_mode: "HTML",
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+            [
+              Markup.button.callback(
+                "🔗 Create or Import Wallet",
+                "CONNECT_WALLET",
+              ),
+            ],
             [Markup.button.callback("⬅️ Back", backButton)],
           ]).reply_markup,
         },
@@ -3747,7 +3808,12 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", backButton)],
             ]).reply_markup,
           },
@@ -3783,7 +3849,12 @@ bot.action(/.*/, async (ctx) => {
         {
           parse_mode: "HTML",
           reply_markup: Markup.inlineKeyboard([
-            [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+            [
+              Markup.button.callback(
+                "🔗 Create or Import Wallet",
+                "CONNECT_WALLET",
+              ),
+            ],
             [Markup.button.callback("⬅️ Back", backButton)],
           ]).reply_markup,
         },
@@ -3828,7 +3899,12 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", backButton)],
             ]).reply_markup,
           },
@@ -4281,7 +4357,12 @@ bot.action(/.*/, async (ctx) => {
       {
         parse_mode: "HTML",
         reply_markup: Markup.inlineKeyboard([
-          [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+          [
+            Markup.button.callback(
+              "🔗 Create or Import Wallet",
+              "CONNECT_WALLET",
+            ),
+          ],
           [Markup.button.callback("💸 Other Amount", "WITHDRAW")],
           [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
         ]).reply_markup,
@@ -4320,7 +4401,12 @@ bot.action(/.*/, async (ctx) => {
             {
               parse_mode: "HTML",
               reply_markup: Markup.inlineKeyboard([
-                [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+                [
+                  Markup.button.callback(
+                    "🔗 Create or Import Wallet",
+                    "CONNECT_WALLET",
+                  ),
+                ],
                 [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
               ]).reply_markup,
             },
@@ -4332,7 +4418,12 @@ bot.action(/.*/, async (ctx) => {
           {
             parse_mode: "HTML",
             reply_markup: Markup.inlineKeyboard([
-              [Markup.button.callback("🔗 Create or Import Wallet", "CONNECT_WALLET")],
+              [
+                Markup.button.callback(
+                  "🔗 Create or Import Wallet",
+                  "CONNECT_WALLET",
+                ),
+              ],
               [Markup.button.callback("⬅️ Back", "BACK_MAIN")],
             ]).reply_markup,
           },
