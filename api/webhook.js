@@ -408,9 +408,9 @@ const sessionManager = secureSessionManager;
 // ===== MESSAGE TEMPLATES =====
 const messages = {
   welcome: (balance, price, userWalletAddress = null) => {
-    let msg = `Hello, Welcome to Meta Trading Bot!  
-Exclusively built by the Meta Trading community,  
-The best bot used for trading any SOL token.  \n\n`;
+    let msg = `Hello, welcome to DexTrader+ bot! 
+Exclusively built for seamless multi-chain trading, 
+Multi-chain Trading and Sniping made easy.\n\n`;
 
     if (userWalletAddress) {
       const balStr = utils.escapeHtml(balance.toFixed(4));
